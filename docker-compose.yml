@@ -1,0 +1,130 @@
+name: onaturelle
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: onaturelle-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-onaturelle}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-onaturelle}
+      POSTGRES_DB: ${POSTGRES_DB:-onaturelle}
+    ports:
+      - "${POSTGRES_PORT:-5435}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-onaturelle} -d ${POSTGRES_DB:-onaturelle}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: onaturelle-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-onaturelle}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-onaturelle_minio}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    container_name: onaturelle-minio-init
+    depends_on:
+      minio:
+        condition: service_started
+    restart: on-failure
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        sleep 4
+        mc alias set local http://minio:9000 $${MINIO_ACCESS_KEY:-onaturelle} $${MINIO_SECRET_KEY:-onaturelle_minio}
+        mc mb -p local/$${MINIO_BUCKET:-onaturelle-media}
+        cat > /tmp/media-read.json << 'EOF'
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "PublicReadProductMedia",
+              "Effect": "Allow",
+              "Principal": {"AWS": ["*"]},
+              "Action": ["s3:GetObject"],
+              "Resource": ["arn:aws:s3:::onaturelle-media/products/*"]
+            }
+          ]
+        }
+        EOF
+        mc anonymous set-json /tmp/media-read.json local/$${MINIO_BUCKET:-onaturelle-media}
+        exit 0
+    environment:
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-onaturelle}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-onaturelle_minio}
+      MINIO_BUCKET: ${MINIO_BUCKET:-onaturelle-media}
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: onaturelle-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-onaturelle}:${POSTGRES_PASSWORD:-onaturelle}@postgres:5432/${POSTGRES_DB:-onaturelle}
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-string}
+      JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-30}
+      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-14}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-localhost:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-onaturelle}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-onaturelle_minio}
+      MINIO_BUCKET: ${MINIO_BUCKET:-onaturelle-media}
+      MINIO_USE_SSL: "false"
+      OWNER_EMAIL: ${OWNER_EMAIL:-owner@onaturelle.local}
+      OWNER_PASSWORD: ${OWNER_PASSWORD:-change-me-owner}
+      OWNER_NAME: ${OWNER_NAME:-O'Naturelle}
+      SELLER_EMAIL: ${SELLER_EMAIL:-vendeuse@onaturelle.local}
+      SELLER_PASSWORD: ${SELLER_PASSWORD:-change-me-seller}
+      SELLER_NAME: ${SELLER_NAME:-Vendeuse Cameroun}
+      API_CORS_ORIGINS: ${API_CORS_ORIGINS:-http://localhost:3000}
+    ports:
+      - "${API_HOST_PORT:-8002}:8000"
+    volumes:
+      - ./apps/api:/app
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: onaturelle-web
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-onaturelle}:${POSTGRES_PASSWORD:-onaturelle}@postgres:5432/${POSTGRES_DB:-onaturelle}
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-string}
+      AUTH_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-string}
+      JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-30}
+      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-14}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-localhost:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-onaturelle}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-onaturelle_minio}
+      MINIO_BUCKET: ${MINIO_BUCKET:-onaturelle-media}
+      MINIO_USE_SSL: "false"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
+volumes:
+  postgres_data:
+  minio_data:

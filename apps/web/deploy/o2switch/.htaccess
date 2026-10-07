@@ -1,0 +1,13 @@
+# O2Switch — Node.js (Passenger)
+# Remplacez USER et DOMAINE par vos valeurs cPanel.
+
+PassengerAppRoot "/home/USER/onaturelle"
+PassengerBaseURI "/"
+PassengerNodejs "/home/USER/nodevenv/onaturelle/20/bin/node"
+PassengerAppType node
+PassengerStartupFile server.js
+
+# HTTPS (décommentez une fois le certificat SSL actif)
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

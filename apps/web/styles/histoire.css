@@ -1,0 +1,444 @@
+/* Notre histoire — editorial, typographic, no stock photography */
+
+.histoire {
+  background: var(--cream);
+}
+
+.hist-hero {
+  position: relative;
+  min-height: 24rem;
+  overflow: hidden;
+  background: var(--forest-deep);
+  color: var(--cream);
+  display: flex;
+  align-items: flex-end;
+  padding: 2.5rem clamp(1.25rem, 5vw, 5rem) 2.5rem;
+}
+
+.hist-hero__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+.hist-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(16 32 26 / 0.78) 0%, rgb(16 32 26 / 0.28) 100%);
+}
+
+.hist-hero__ghost {
+  position: absolute;
+  z-index: 1;
+  right: -4%;
+  bottom: -12%;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(6rem, 22vw, 18rem);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  color: rgb(246 241 232 / 0.05);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.hist-hero__copy {
+  position: relative;
+  z-index: 2;
+  max-width: 44rem;
+}
+
+.hist-hero__label {
+  color: var(--gold);
+  margin-bottom: 1rem;
+}
+
+.hist-hero h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.85rem, 4.4vw, 3.15rem);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: var(--cream);
+  margin: 0;
+}
+
+.hist-hero__lead {
+  max-width: 32rem;
+  font-size: 1.05rem;
+  color: rgb(246 241 232 / 0.86);
+}
+
+.hist-year {
+  display: grid;
+  gap: 2rem;
+  padding: clamp(4.5rem, 10vw, 8rem) clamp(1.25rem, 5vw, 5rem);
+  max-width: 86rem;
+  margin: 0 auto;
+  align-items: end;
+}
+
+.hist-year__mark {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(6.5rem, 18vw, 14rem);
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: var(--forest);
+}
+
+.hist-year__copy {
+  max-width: 34rem;
+}
+
+.hist-year__copy h2 {
+  font-size: clamp(2.1rem, 4vw, 3.2rem);
+  margin: 0;
+}
+
+.hist-year__copy p {
+  color: var(--text-secondary);
+}
+
+.hist-year__phrase {
+  margin-top: 1.5rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.45rem;
+  color: var(--forest);
+}
+
+@media (min-width: 900px) {
+  .hist-year {
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 5rem;
+  }
+}
+
+.hist-body {
+  background: var(--forest);
+  color: var(--cream);
+  padding: clamp(4.5rem, 11vw, 8.5rem) clamp(1.25rem, 5vw, 5rem);
+}
+
+.hist-body__intro {
+  max-width: 38rem;
+}
+
+.hist-body h2 {
+  font-size: clamp(2.3rem, 5vw, 4rem);
+  line-height: 1.06;
+  color: var(--cream);
+  font-style: italic;
+  font-weight: 400;
+  margin: 0;
+}
+
+.hist-body__intro p:last-child {
+  color: rgb(246 241 232 / 0.86);
+  max-width: 34rem;
+}
+
+.hist-pillars {
+  list-style: none;
+  margin: 3.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem 2rem;
+  border-top: 1px solid rgb(196 165 116 / 0.35);
+}
+
+.hist-pillars li {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 7vw, 5.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid rgb(196 165 116 / 0.28);
+}
+
+@media (min-width: 800px) {
+  .hist-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: end;
+  }
+  .hist-pillars {
+    margin-top: 0;
+    border-top: 0;
+  }
+}
+
+.hist-spirit {
+  padding: clamp(4.5rem, 11vw, 8.5rem) clamp(1.25rem, 5vw, 5rem);
+  max-width: 86rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 3rem;
+}
+
+.hist-spirit h2 {
+  font-size: clamp(2.4rem, 5.5vw, 4.4rem);
+  line-height: 1.05;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--forest);
+  margin: 0;
+}
+
+.hist-spirit__main p {
+  max-width: 36rem;
+  color: var(--text-secondary);
+}
+
+.hist-spirit__aside {
+  border-left: 1px solid rgb(196 165 116 / 0.55);
+  padding-left: 1.75rem;
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+}
+
+.hist-spirit__aside p {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  margin: 0;
+  color: var(--forest);
+}
+
+@media (min-width: 960px) {
+  .hist-spirit {
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 7rem;
+    align-items: center;
+  }
+}
+
+.hist-univers {
+  padding: 0 0 clamp(4.5rem, 10vw, 7.5rem);
+}
+
+.hist-univers__head {
+  padding: 0 clamp(1.25rem, 5vw, 5rem) 2.5rem;
+}
+
+.hist-univers__head h2 {
+  font-size: clamp(2.1rem, 4vw, 3.3rem);
+  margin: 0.35rem 0 0;
+}
+
+.hist-univers__layout {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0 clamp(0.6rem, 2vw, 1.5rem);
+}
+
+.hist-featured {
+  min-height: 22rem;
+  padding: clamp(1.8rem, 4vw, 3rem);
+  background: var(--forest-deep);
+  color: var(--cream);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.hist-featured span {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  color: var(--gold);
+}
+
+.hist-featured strong {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 500;
+  margin: 0.35rem 0 0.85rem;
+}
+
+.hist-featured p {
+  max-width: 28rem;
+  color: rgb(246 241 232 / 0.82);
+  margin: 0;
+}
+
+.hist-index {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0 0;
+}
+
+.hist-index li {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 1rem;
+  padding: 1.15rem 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.hist-index em {
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-style: normal;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+}
+
+.hist-index span {
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+  color: var(--text-tertiary);
+}
+
+.hist-index strong {
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-weight: 500;
+  color: var(--forest);
+}
+
+@media (min-width: 900px) {
+  .hist-univers__layout {
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: stretch;
+  }
+  .hist-featured {
+    min-height: 100%;
+  }
+  .hist-index {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1.5rem;
+    padding-top: 0;
+  }
+  .hist-index li:nth-child(odd) {
+    padding-right: 0.75rem;
+  }
+}
+
+.hist-guide {
+  background: var(--forest);
+  color: var(--cream);
+  padding: clamp(4.5rem, 11vw, 8rem) clamp(1.25rem, 5vw, 5rem);
+}
+
+.hist-guide > div {
+  max-width: 38rem;
+}
+
+.hist-guide h2 {
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  color: var(--cream);
+  font-style: italic;
+  font-weight: 400;
+  margin: 0;
+}
+
+.hist-guide p {
+  color: rgb(246 241 232 / 0.86);
+}
+
+.hist-guide__btn {
+  margin-top: 1.5rem;
+  color: var(--cream);
+}
+
+.hist-guide__btn:hover:not(:disabled) {
+  background: rgb(246 241 232 / 0.1);
+}
+
+.hist-guide__tel {
+  margin-top: 1rem;
+  letter-spacing: 0.08em;
+}
+
+.hist-guide__tel a {
+  color: var(--gold);
+}
+
+.hist-close {
+  text-align: center;
+  padding: clamp(5.5rem, 14vw, 9rem) 1.5rem;
+  background: var(--forest-deep);
+  color: var(--cream);
+}
+
+.hist-close h2 {
+  font-size: clamp(2rem, 5.4vw, 3.8rem);
+  color: var(--cream);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.18;
+  margin: 0 0 1.25rem;
+}
+
+.hist-close p {
+  color: rgb(246 241 232 / 0.82);
+  margin-bottom: 1.75rem;
+}
+
+.hist-close .on-btn--primary {
+  background: var(--cream);
+  color: var(--forest);
+}
+
+@media (max-width: 720px) {
+  .hist-hero {
+    min-height: 20rem;
+    align-items: flex-end;
+    padding: 5.5rem 1.15rem 1.75rem;
+  }
+  .hist-hero h1 {
+    font-size: 1.85rem;
+  }
+  .hist-hero h1 br {
+    display: none;
+  }
+  .hist-hero__lead {
+    font-size: 0.95rem;
+  }
+  .hist-year__mark {
+    font-size: 5.2rem;
+  }
+  .hist-pillars li {
+    font-size: 2.35rem;
+  }
+  .hist-featured {
+    min-height: 18rem;
+  }
+  .hist-close h2 br {
+    display: block;
+  }
+}
+
+@media (max-width: 380px) {
+  .hist-hero h1 {
+    font-size: 1.6rem;
+  }
+  .hist-year__mark {
+    font-size: 4.4rem;
+  }
+  .hist-pillars li {
+    font-size: 2.05rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .histoire .home-reveal {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}

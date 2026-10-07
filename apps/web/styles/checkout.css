@@ -1,0 +1,248 @@
+/* Cart + checkout — editorial, simple, mobile-first */
+
+.chk {
+  background: var(--cream);
+  min-height: 100vh;
+}
+
+.chk-shell {
+  padding: 2.5rem clamp(1.25rem, 5vw, 5rem) 4rem;
+  max-width: 72rem;
+}
+
+.chk-shell h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  color: var(--forest);
+  margin: 0.35rem 0 0.5rem;
+}
+
+.chk-empty {
+  margin: 1.5rem 0 0;
+}
+
+.chk-empty .on-btn {
+  margin-top: 1rem;
+}
+
+.chk-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: start;
+}
+
+.chk-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chk-line {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 1rem;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.chk-line__visual {
+  display: block;
+  width: 5.5rem;
+  height: 6.6rem;
+  overflow: hidden;
+  background: var(--sand);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.chk-line__visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chk-line__name {
+  margin: 0 0 0.2rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--forest);
+}
+
+.chk-line__sub {
+  margin: 0.45rem 0 0;
+  font-weight: 600;
+}
+
+.chk-line__remove,
+.chk-line__remove:hover {
+  background: none;
+  border: 0;
+  padding: 0.35rem 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.chk-line__issue {
+  color: var(--bark);
+  font-size: 0.9rem;
+  margin: 0.4rem 0 0;
+}
+
+.chk-summary {
+  background: var(--ivory);
+  padding: 1.5rem 1.35rem;
+  border-top: 1px solid var(--gold);
+}
+
+.chk-summary dl {
+  margin: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.chk-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.chk-summary dt {
+  color: var(--text-secondary);
+}
+
+.chk-note {
+  margin: 1rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.chk-form {
+  display: grid;
+  gap: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.chk-form label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.92rem;
+}
+
+.chk-form input {
+  min-height: 2.85rem;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  padding: 0.35rem 0.1rem;
+  color: var(--forest);
+  font: inherit;
+}
+
+.chk-form input:focus {
+  outline: none;
+  border-bottom-color: var(--gold);
+}
+
+.chk-modes {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.chk-mode {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.chk-mode[aria-disabled="true"] {
+  opacity: 0.55;
+}
+
+.chk-unavailable {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--bark);
+}
+
+.chk-hello {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.6rem;
+  color: var(--forest);
+  margin: 0 0 1rem;
+}
+
+.chk-error {
+  color: var(--bark);
+  margin: 0.5rem 0 0;
+}
+
+.chk-drawer .chk-lines {
+  margin: 0.5rem 0 1rem;
+}
+
+.chk-drawer__actions,
+.chk-dialog__actions,
+.chk-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.chk-cta .on-btn {
+  min-width: 12rem;
+}
+
+.chk-dialog h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--forest);
+  margin: 0.3rem 0 0.8rem;
+}
+
+.on-btn.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .chk-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .chk-summary {
+    position: sticky;
+    bottom: 0;
+    z-index: 8;
+    margin-inline: -1.25rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  .chk-cta .on-btn {
+    flex: 1 1 10rem;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .chk-shell {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    overflow-x: hidden;
+  }
+
+  .chk-line {
+    grid-template-columns: 4.5rem 1fr;
+  }
+}

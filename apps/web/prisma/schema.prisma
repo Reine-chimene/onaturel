@@ -1,0 +1,547 @@
+// Schéma aligné sur SQLAlchemy (apps/api). Ne pas inventer de tables.
+// Données existantes : voir prisma/MIGRATIONS.md
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Currency {
+  id          String           @id @default(uuid()) @db.Uuid
+  code        String           @db.VarChar(8)
+  name        String           @db.VarChar(64)
+  symbol      String           @db.VarChar(16)
+  minor_units Int              @default(0)
+  zones       CommercialZone[]
+  orders      Order[]
+  sales       Sale[]
+  payments    Payment[]
+  documents   Document[]
+  cash_closures CashClosure[]
+
+  @@unique([code], map: "uq_currencies_code")
+  @@map("currencies")
+}
+
+model CommercialZone {
+  id          String   @id @default(uuid()) @db.Uuid
+  slug        String   @db.VarChar(64)
+  name        String   @db.VarChar(128)
+  is_active   Boolean  @default(true)
+  currency_id String   @db.Uuid
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now()) @db.Timestamptz
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  currency          Currency              @relation(fields: [currency_id], references: [id], onDelete: Restrict)
+  fulfillment_modes ZoneFulfillmentMode[]
+  users             User[]
+  product_prices    ProductZonePrice[]
+  bundle_prices     BundleZonePrice[]
+  promotions        Promotion[]
+  inventory_positions InventoryPosition[]
+  inventory_movements InventoryMovement[]
+  customers         Customer[]
+  orders            Order[]
+  sales             Sale[]
+  documents         Document[]
+  cash_closures     CashClosure[]
+
+  @@unique([slug], map: "uq_commercial_zones_slug")
+  @@map("commercial_zones")
+}
+
+model ZoneFulfillmentMode {
+  id                 String   @id @default(uuid()) @db.Uuid
+  zone_id            String   @db.Uuid
+  mode               String   @db.VarChar(32)
+  label              String   @db.VarChar(64)
+  is_enabled         Boolean  @default(true)
+  fee_policy         String   @db.VarChar(32)
+  default_fee_amount Int?
+  created_at         DateTime @default(now()) @db.Timestamptz
+  updated_at         DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  zone CommercialZone @relation(fields: [zone_id], references: [id], onDelete: Cascade)
+
+  @@unique([zone_id, mode], map: "uq_zone_fulfillment_mode")
+  @@map("zone_fulfillment_modes")
+}
+
+model User {
+  id               String   @id @default(uuid()) @db.Uuid
+  email            String   @db.VarChar(255)
+  hashed_password  String   @db.VarChar(255)
+  full_name        String   @db.VarChar(255)
+  role             String   @db.VarChar(32)
+  assigned_zone_id String?  @db.Uuid
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now()) @db.Timestamptz
+  updated_at       DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  assigned_zone     CommercialZone?     @relation(fields: [assigned_zone_id], references: [id], onDelete: Restrict)
+  refresh_tokens    RefreshToken[]
+  audit_logs        AuditLog[]
+  inventory_movements InventoryMovement[]
+  created_orders    Order[]             @relation("OrderCreator")
+  sales             Sale[]
+  payments          Payment[]           @relation("PaymentRecorder")
+  documents         Document[]          @relation("DocumentIssuer")
+  cash_closures     CashClosure[]
+
+  @@unique([email], map: "uq_users_email")
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  user_id    String    @db.Uuid
+  token_hash String    @unique @db.VarChar(128)
+  expires_at DateTime  @db.Timestamptz
+  revoked_at DateTime? @db.Timestamptz
+  created_at DateTime  @default(now()) @db.Timestamptz
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actor_id    String?  @db.Uuid
+  action      String   @db.VarChar(128)
+  entity_type String   @db.VarChar(64)
+  entity_id   String?  @db.VarChar(64)
+  payload     Json?    @db.JsonB
+  created_at  DateTime @default(now()) @db.Timestamptz
+
+  actor User? @relation(fields: [actor_id], references: [id], onDelete: SetNull)
+
+  @@index([actor_id])
+  @@index([action])
+  @@index([entity_type])
+  @@index([created_at])
+  @@map("audit_logs")
+}
+
+model Setting {
+  key        String   @id @db.VarChar(128)
+  value      Json     @db.JsonB
+  updated_at DateTime @default(now()) @db.Timestamptz
+
+  @@map("settings")
+}
+
+model FileAsset {
+  id                String   @id @default(uuid()) @db.Uuid
+  storage_key       String   @unique @db.VarChar(512)
+  original_filename String   @db.VarChar(255)
+  mime_type         String   @db.VarChar(128)
+  size_bytes        BigInt
+  width             Int?
+  height            Int?
+  variants          Json     @default("{}") @db.JsonB
+  created_at        DateTime @default(now()) @db.Timestamptz
+  updated_at        DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  categories     Category[]
+  product_images ProductImage[]
+  bundles        Bundle[]
+
+  @@map("files")
+}
+
+model Category {
+  id            String   @id @default(uuid()) @db.Uuid
+  slug          String   @db.VarChar(128)
+  name          String   @db.VarChar(255)
+  description   String?  @db.Text
+  parent_id     String?  @db.Uuid
+  image_file_id String?  @db.Uuid
+  sort_order    Int      @default(0)
+  is_visible    Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamptz
+  updated_at    DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  parent    Category?  @relation("CategoryTree", fields: [parent_id], references: [id], onDelete: SetNull)
+  children  Category[] @relation("CategoryTree")
+  image     FileAsset? @relation(fields: [image_file_id], references: [id], onDelete: SetNull)
+  products  Product[]
+
+  @@unique([slug], map: "uq_categories_slug")
+  @@map("categories")
+}
+
+model Product {
+  id          String   @id @default(uuid()) @db.Uuid
+  sku         String?  @db.VarChar(64)
+  slug        String   @db.VarChar(160)
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  category_id String?  @db.Uuid
+  is_new      Boolean  @default(false)
+  is_featured Boolean  @default(false)
+  is_active   Boolean  @default(true)
+  is_archived Boolean  @default(false)
+  created_at  DateTime @default(now()) @db.Timestamptz
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  category              Category?           @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  images                ProductImage[]
+  zone_prices           ProductZonePrice[]
+  promotions            Promotion[]
+  bundle_items          BundleItem[]
+  inventory_positions   InventoryPosition[]
+  inventory_movements   InventoryMovement[]
+  order_items           OrderItem[]
+  sale_items            SaleItem[]
+
+  @@unique([slug], map: "uq_products_slug")
+  @@unique([sku], map: "uq_products_sku")
+  @@map("products")
+}
+
+model ProductImage {
+  id         String   @id @default(uuid()) @db.Uuid
+  product_id String   @db.Uuid
+  file_id    String   @db.Uuid
+  sort_order Int      @default(0)
+  is_primary Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  product Product   @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  file    FileAsset @relation(fields: [file_id], references: [id], onDelete: Cascade)
+
+  @@index([product_id])
+  @@map("product_images")
+}
+
+model ProductZonePrice {
+  id                 String   @id @default(uuid()) @db.Uuid
+  product_id         String   @db.Uuid
+  zone_id            String   @db.Uuid
+  price_amount       Int
+  promo_price_amount Int?
+  promo_is_active    Boolean  @default(false)
+  is_available       Boolean  @default(true)
+  created_at         DateTime @default(now()) @db.Timestamptz
+  updated_at         DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  product Product        @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  zone    CommercialZone @relation(fields: [zone_id], references: [id], onDelete: Cascade)
+
+  @@unique([product_id, zone_id], map: "uq_product_zone_price")
+  @@map("product_zone_prices")
+}
+
+model Bundle {
+  id            String   @id @default(uuid()) @db.Uuid
+  slug          String   @db.VarChar(160)
+  name          String   @db.VarChar(255)
+  description   String?  @db.Text
+  image_file_id String?  @db.Uuid
+  is_active     Boolean  @default(true)
+  is_archived   Boolean  @default(false)
+  created_at    DateTime @default(now()) @db.Timestamptz
+  updated_at    DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  image       FileAsset?        @relation(fields: [image_file_id], references: [id], onDelete: SetNull)
+  items       BundleItem[]
+  zone_prices BundleZonePrice[]
+  promotions  Promotion[]
+  order_items OrderItem[]
+  sale_items  SaleItem[]
+
+  @@unique([slug], map: "uq_bundles_slug")
+  @@map("bundles")
+}
+
+model BundleItem {
+  id         String @id @default(uuid()) @db.Uuid
+  bundle_id  String @db.Uuid
+  product_id String @db.Uuid
+  quantity   Int    @default(1)
+
+  bundle  Bundle  @relation(fields: [bundle_id], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [product_id], references: [id], onDelete: Restrict)
+
+  @@unique([bundle_id, product_id], map: "uq_bundle_item")
+  @@map("bundle_items")
+}
+
+model BundleZonePrice {
+  id                 String   @id @default(uuid()) @db.Uuid
+  bundle_id          String   @db.Uuid
+  zone_id            String   @db.Uuid
+  price_amount       Int
+  promo_price_amount Int?
+  promo_is_active    Boolean  @default(false)
+  is_available       Boolean  @default(true)
+  created_at         DateTime @default(now()) @db.Timestamptz
+  updated_at         DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  bundle Bundle         @relation(fields: [bundle_id], references: [id], onDelete: Cascade)
+  zone   CommercialZone @relation(fields: [zone_id], references: [id], onDelete: Cascade)
+
+  @@unique([bundle_id, zone_id], map: "uq_bundle_zone_price")
+  @@map("bundle_zone_prices")
+}
+
+model Promotion {
+  id                 String    @id @default(uuid()) @db.Uuid
+  product_id         String?   @db.Uuid
+  bundle_id          String?   @db.Uuid
+  zone_id            String    @db.Uuid
+  promo_price_amount Int
+  is_active          Boolean   @default(false)
+  starts_at          DateTime? @db.Timestamptz
+  ends_at            DateTime? @db.Timestamptz
+  created_at         DateTime  @default(now()) @db.Timestamptz
+  updated_at         DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  product Product?       @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  bundle  Bundle?        @relation(fields: [bundle_id], references: [id], onDelete: Cascade)
+  zone    CommercialZone @relation(fields: [zone_id], references: [id], onDelete: Cascade)
+
+  @@index([zone_id])
+  @@map("promotions")
+}
+
+model InventoryPosition {
+  id                  String   @id @default(uuid()) @db.Uuid
+  product_id          String   @db.Uuid
+  zone_id             String   @db.Uuid
+  qty                 Int      @default(0)
+  low_stock_threshold Int?
+  updated_at          DateTime @default(now()) @db.Timestamptz
+
+  product Product        @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  zone    CommercialZone @relation(fields: [zone_id], references: [id], onDelete: Cascade)
+
+  @@unique([product_id, zone_id], map: "uq_inventory_position")
+  @@index([zone_id])
+  @@map("inventory_positions")
+}
+
+model InventoryMovement {
+  id               String   @id @default(uuid()) @db.Uuid
+  product_id       String   @db.Uuid
+  zone_id          String   @db.Uuid
+  qty_delta        Int
+  reason           String   @db.VarChar(32)
+  reference_type   String?  @db.VarChar(32)
+  reference_id     String?  @db.VarChar(64)
+  transfer_group_id String? @db.Uuid
+  note             String?  @db.Text
+  created_by_id    String?  @db.Uuid
+  created_at       DateTime @default(now()) @db.Timestamptz
+
+  product    Product        @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  zone       CommercialZone @relation(fields: [zone_id], references: [id], onDelete: Restrict)
+  created_by User?          @relation(fields: [created_by_id], references: [id], onDelete: SetNull)
+
+  @@index([product_id])
+  @@index([zone_id])
+  @@index([reason])
+  @@index([transfer_group_id])
+  @@index([created_at])
+  @@map("inventory_movements")
+}
+
+model Customer {
+  id           String   @id @default(uuid()) @db.Uuid
+  full_name    String   @db.VarChar(255)
+  phone        String   @db.VarChar(32)
+  last_zone_id String?  @db.Uuid
+  created_at   DateTime @default(now()) @db.Timestamptz
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  last_zone CommercialZone? @relation(fields: [last_zone_id], references: [id], onDelete: SetNull)
+  orders    Order[]
+  sales     Sale[]
+
+  @@unique([phone], map: "uq_customers_phone")
+  @@map("customers")
+}
+
+model Order {
+  id                         String    @id @default(uuid()) @db.Uuid
+  number                     String    @db.VarChar(32)
+  zone_id                    String    @db.Uuid
+  currency_id                String    @db.Uuid
+  currency_code              String    @db.VarChar(8)
+  status                     String    @db.VarChar(32)
+  customer_id                String?   @db.Uuid
+  customer_name              String    @db.VarChar(255)
+  customer_phone             String    @db.VarChar(32)
+  fulfillment_mode           String    @db.VarChar(32)
+  city                       String?   @db.VarChar(128)
+  neighborhood               String?   @db.VarChar(128)
+  products_amount            Int       @default(0)
+  fulfillment_fee_amount     Int       @default(0)
+  products_payment_status    String    @db.VarChar(32)
+  fulfillment_payment_status String    @db.VarChar(32)
+  stock_decremented_at       DateTime? @db.Timestamptz
+  notes                      String?   @db.Text
+  created_by_id              String?   @db.Uuid
+  created_at                 DateTime  @default(now()) @db.Timestamptz
+  updated_at                 DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  zone       CommercialZone @relation(fields: [zone_id], references: [id], onDelete: Restrict)
+  currency   Currency       @relation(fields: [currency_id], references: [id], onDelete: Restrict)
+  customer   Customer?      @relation(fields: [customer_id], references: [id], onDelete: SetNull)
+  created_by User?          @relation("OrderCreator", fields: [created_by_id], references: [id], onDelete: SetNull)
+  items      OrderItem[]
+  payments   Payment[]
+  documents  Document[]
+
+  @@unique([number], map: "uq_orders_number")
+  @@index([zone_id])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id                  String  @id @default(uuid()) @db.Uuid
+  order_id            String  @db.Uuid
+  product_id          String? @db.Uuid
+  bundle_id           String? @db.Uuid
+  name_snapshot       String  @db.VarChar(255)
+  unit_price_snapshot Int
+  quantity            Int
+  line_total          Int
+
+  order   Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [product_id], references: [id], onDelete: SetNull)
+  bundle  Bundle?  @relation(fields: [bundle_id], references: [id], onDelete: SetNull)
+
+  @@index([order_id])
+  @@map("order_items")
+}
+
+model Sale {
+  id                     String   @id @default(uuid()) @db.Uuid
+  number                 String   @db.VarChar(32)
+  zone_id                String   @db.Uuid
+  currency_id            String   @db.Uuid
+  currency_code          String   @db.VarChar(8)
+  seller_id              String   @db.Uuid
+  status                 String   @default("COMPLETED") @db.VarChar(32)
+  products_amount        Int      @default(0)
+  fulfillment_fee_amount Int      @default(0)
+  total_amount           Int      @default(0)
+  payment_method         String   @db.VarChar(32)
+  amount_paid            Int      @default(0)
+  amount_remaining       Int      @default(0)
+  customer_id            String?  @db.Uuid
+  notes                  String?  @db.Text
+  created_at             DateTime @default(now()) @db.Timestamptz
+  updated_at             DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  zone     CommercialZone @relation(fields: [zone_id], references: [id], onDelete: Restrict)
+  currency Currency       @relation(fields: [currency_id], references: [id], onDelete: Restrict)
+  seller   User           @relation(fields: [seller_id], references: [id], onDelete: Restrict)
+  customer Customer?      @relation(fields: [customer_id], references: [id], onDelete: SetNull)
+  items    SaleItem[]
+  payments Payment[]
+  documents Document[]
+
+  @@unique([number], map: "uq_sales_number")
+  @@index([zone_id])
+  @@index([seller_id])
+  @@map("sales")
+}
+
+model SaleItem {
+  id                  String  @id @default(uuid()) @db.Uuid
+  sale_id             String  @db.Uuid
+  product_id          String? @db.Uuid
+  bundle_id           String? @db.Uuid
+  name_snapshot       String  @db.VarChar(255)
+  unit_price_snapshot Int
+  quantity            Int
+  line_total          Int
+
+  sale    Sale     @relation(fields: [sale_id], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [product_id], references: [id], onDelete: SetNull)
+  bundle  Bundle?  @relation(fields: [bundle_id], references: [id], onDelete: SetNull)
+
+  @@index([sale_id])
+  @@map("sale_items")
+}
+
+model Payment {
+  id             String   @id @default(uuid()) @db.Uuid
+  kind           String   @db.VarChar(32)
+  order_id       String?  @db.Uuid
+  sale_id        String?  @db.Uuid
+  amount         Int
+  currency_id    String   @db.Uuid
+  method         String   @db.VarChar(32)
+  recorded_by_id String?  @db.Uuid
+  created_at     DateTime @default(now()) @db.Timestamptz
+
+  order       Order?    @relation(fields: [order_id], references: [id], onDelete: SetNull)
+  sale        Sale?     @relation(fields: [sale_id], references: [id], onDelete: SetNull)
+  currency    Currency  @relation(fields: [currency_id], references: [id], onDelete: Restrict)
+  recorded_by User?     @relation("PaymentRecorder", fields: [recorded_by_id], references: [id], onDelete: SetNull)
+
+  @@index([kind])
+  @@index([order_id])
+  @@index([sale_id])
+  @@index([created_at])
+  @@map("payments")
+}
+
+model Document {
+  id           String   @id @default(uuid()) @db.Uuid
+  kind         String   @db.VarChar(32)
+  number       String   @db.VarChar(32)
+  sale_id      String?  @db.Uuid
+  order_id     String?  @db.Uuid
+  zone_id      String   @db.Uuid
+  currency_id  String   @db.Uuid
+  issued_by_id String?  @db.Uuid
+  created_at   DateTime @default(now()) @db.Timestamptz
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  sale      Sale?          @relation(fields: [sale_id], references: [id], onDelete: SetNull)
+  order     Order?         @relation(fields: [order_id], references: [id], onDelete: SetNull)
+  zone      CommercialZone @relation(fields: [zone_id], references: [id], onDelete: Restrict)
+  currency  Currency       @relation(fields: [currency_id], references: [id], onDelete: Restrict)
+  issued_by User?          @relation("DocumentIssuer", fields: [issued_by_id], references: [id], onDelete: SetNull)
+
+  @@unique([number], map: "uq_documents_number")
+  @@map("documents")
+}
+
+model CashClosure {
+  id                   String   @id @default(uuid()) @db.Uuid
+  seller_id            String   @db.Uuid
+  zone_id              String   @db.Uuid
+  currency_id          String   @db.Uuid
+  business_date        DateTime @db.Date
+  cash_expected        Int      @default(0)
+  mobile_money_expected Int     @default(0)
+  other_expected       Int      @default(0)
+  total_expected       Int      @default(0)
+  sales_count          Int      @default(0)
+  notes                String?  @db.Text
+  closed_at            DateTime @default(now()) @db.Timestamptz
+
+  seller   User           @relation(fields: [seller_id], references: [id], onDelete: Restrict)
+  zone     CommercialZone @relation(fields: [zone_id], references: [id], onDelete: Restrict)
+  currency Currency       @relation(fields: [currency_id], references: [id], onDelete: Restrict)
+
+  @@unique([seller_id, zone_id, business_date], map: "uq_cash_closure_day")
+  @@index([seller_id])
+  @@index([zone_id])
+  @@map("cash_closures")
+}

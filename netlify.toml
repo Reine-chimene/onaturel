@@ -1,0 +1,10 @@
+# Monorepo : pas de package.json à la racine.
+# `base` force l’install et `npm run build` dans apps/web.
+
+[build]
+  base = "apps/web"
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

@@ -1,0 +1,110 @@
+:root {
+  /* Brand pigments */
+  --forest: #1b3329;
+  --forest-deep: #12241d;
+  --leaf: #4e6a4e;
+  --leaf-soft: #6b846b;
+  --cream: #f6f1e8;
+  --ivory: #fbf8f3;
+  --sand: #e8dcc8;
+  --earth: #8b6848;
+  --bark: #3f2e22;
+  --gold: #c4a574;
+  --gold-dim: #a68b5b;
+
+  /* Semantic tokens */
+  --background: var(--cream);
+  --surface: var(--ivory);
+  --surface-muted: var(--sand);
+  --text-primary: var(--bark);
+  --text-secondary: #6a5748;
+  --text-tertiary: #8a7464;
+  --brand-primary: var(--forest);
+  --brand-secondary: var(--leaf);
+  --accent: var(--gold);
+  --border: #d9cbb6;
+  --border-strong: #c4b49a;
+  --success: #3d5c45;
+  --warning: #9a6b2f;
+  --danger: #7a3b2e;
+  --on-brand: var(--cream);
+  --on-danger: #fbf8f3;
+  --focus: var(--forest);
+  --overlay: rgb(18 36 29 / 0.42);
+
+  /* Accessible surfaces for statuses — muted, not rainbow */
+  --status-stock-bg: #e7eee6;
+  --status-stock-fg: #2f4a36;
+  --status-low-bg: #f3ead8;
+  --status-low-fg: #7a5420;
+  --status-out-bg: #f0e4df;
+  --status-out-fg: #7a3b2e;
+  --status-new-bg: #e8efe8;
+  --status-new-fg: var(--forest);
+  --status-promo-bg: #f4ead8;
+  --status-promo-fg: #6e4f28;
+  --status-paid-bg: #e7eee6;
+  --status-paid-fg: #2f4a36;
+  --status-unpaid-bg: #f0e4df;
+  --status-unpaid-fg: #7a3b2e;
+  --status-partial-bg: #f3ead8;
+  --status-partial-fg: #7a5420;
+  --status-neutral-bg: var(--sand);
+  --status-neutral-fg: var(--bark);
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  /* Radius — restrained */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  /* Type */
+  --font-display: var(--font-display-family), "Palatino Linotype", Palatino, serif;
+  --font-ui: var(--font-ui-family), "Segoe UI", sans-serif;
+  --text-display: clamp(2.25rem, 4vw, 3rem);
+  --text-h1: clamp(1.75rem, 2.4vw, 2rem);
+  --text-h2: 1.5rem;
+  --text-h3: 1.2rem;
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-label: 0.72rem;
+  --text-price: 1.125rem;
+  --leading-display: 1.12;
+  --leading-body: 1.6;
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration: 180ms;
+  --duration-slow: 420ms;
+
+  /* Elevation — warm, almost absent */
+  --shadow-soft: 0 12px 32px rgb(63 46 34 / 0.06);
+
+  /* Layout */
+  --header-h: 4.5rem;
+  --container: 72rem;
+  --pos-tap: 2.75rem;
+  --dash-sidebar: 15.5rem;
+
+  /* Breakpoints as custom media are not universal; used in CSS via px */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration: 0ms;
+    --duration-slow: 0ms;
+  }
+}
