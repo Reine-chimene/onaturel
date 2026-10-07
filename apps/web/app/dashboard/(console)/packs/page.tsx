@@ -74,7 +74,6 @@ export default function PacksPage() {
           <h1 className="on-h1">Packs</h1>
         </div>
       </header>
-      <p className="on-small">Un pack est indisponible si un composant est en rupture dans la zone. Le backend décide.</p>
       <ErrorNote message={error} />
       <form className="adm-form" onSubmit={onSubmit}>
         <label className="on-field">

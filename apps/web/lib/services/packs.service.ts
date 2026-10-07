@@ -8,9 +8,14 @@ import { slugify } from "@/lib/utils/slug";
 export async function packOut(bundleId: string) {
   const bundle = await prisma.bundle.findUnique({
     where: { id: bundleId },
-    include: { items: { include: { product: true } }, zone_prices: true, image: true },
+    include: { items: { include: { product: true } }, zone_prices: true },
   });
   if (!bundle) notFound("Pack introuvable.");
+  let imageUrl: string | null = null;
+  if (bundle.image_file_id) {
+    const file = await prisma.fileAsset.findUnique({ where: { id: bundle.image_file_id } });
+    if (file?.storage_key) imageUrl = publicObjectUrl(file.storage_key);
+  }
   const zones = await prisma.commercialZone.findMany({
     include: { currency: true },
     orderBy: { sort_order: "asc" },
@@ -40,7 +45,7 @@ export async function packOut(bundleId: string) {
     name: bundle.name,
     description: bundle.description,
     image_file_id: bundle.image_file_id,
-    image_url: bundle.image?.storage_key ? publicObjectUrl(bundle.image.storage_key) : null,
+    image_url: imageUrl,
     is_active: bundle.is_active,
     is_archived: bundle.is_archived,
     items: bundle.items.map((item) => ({

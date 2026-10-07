@@ -18,7 +18,6 @@ export async function GET(req: Request) {
         zoneId,
         limit,
       }),
-      note: "Classement par zone et devise. Aucune donnée fictive.",
     });
   } catch (error) {
     return handleRouteError(error);

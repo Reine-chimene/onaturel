@@ -19,7 +19,6 @@ export async function GET(req: Request) {
         dateTo: params.get("date_to") ? new Date(params.get("date_to")!) : null,
         zoneId,
       }),
-      note: "Une série par zone et devise. Ne jamais fusionner XAF et EUR.",
     });
   } catch (error) {
     return handleRouteError(error);

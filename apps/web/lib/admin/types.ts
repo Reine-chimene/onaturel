@@ -149,7 +149,7 @@ export type Overview = {
     quantity: number;
     amount: number;
   }[];
-  note: string;
+  note?: string;
 };
 
 export type PromotionAdmin = {

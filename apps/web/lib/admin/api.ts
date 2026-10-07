@@ -33,6 +33,12 @@ export function clearSession() {
   localStorage.removeItem(ROLE);
 }
 
+function redirectToManagerLogin() {
+  if (typeof window === "undefined") return;
+  if (window.location.pathname === "/" && window.location.search.includes("manager=1")) return;
+  window.location.assign("/?manager=1");
+}
+
 async function tryRefresh(): Promise<boolean> {
   const refresh = localStorage.getItem(REFRESH);
   if (!refresh) return false;
@@ -68,6 +74,9 @@ export async function adminFetch(path: string, init: RequestInit = {}): Promise<
         retry.set("Content-Type", "application/json");
       }
       res = await fetch(`${API_BASE}${path}`, { ...init, headers: retry });
+    }
+    if (res.status === 401 && !path.includes("/auth/login") && !path.includes("/auth/refresh")) {
+      redirectToManagerLogin();
     }
   }
   return res;

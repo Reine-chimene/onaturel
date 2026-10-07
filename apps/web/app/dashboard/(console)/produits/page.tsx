@@ -60,18 +60,15 @@ export default function ProduitsPage() {
     });
   }, [products, query, category, availability, zone]);
 
-  async function archive(product: ProductAdmin) {
-    if (!window.confirm(`Archiver « ${product.name} » ?`)) return;
+  async function remove(product: ProductAdmin) {
+    if (!window.confirm(`Supprimer définitivement « ${product.name} » ?`)) return;
     setBusyId(product.id);
     setError(null);
     try {
-      await adminJson(`/api/v1/products/${product.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ is_archived: true, is_active: false }),
-      });
+      await adminJson(`/api/v1/products/${product.id}`, { method: "DELETE" });
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Archivage impossible.");
+      setError(err instanceof Error ? err.message : "Suppression impossible.");
     } finally {
       setBusyId(null);
     }
@@ -174,8 +171,8 @@ export default function ProduitsPage() {
                       <td>
                         <div className="adm-actions">
                           <Link className="on-btn on-btn--secondary on-btn--sm" href={`/dashboard/produits/${product.id}`}>Modifier</Link>
-                          <button type="button" className="on-btn on-btn--ghost on-btn--sm" disabled={busyId === product.id} onClick={() => archive(product)}>
-                            Archiver
+                          <button type="button" className="on-btn on-btn--danger on-btn--sm" disabled={busyId === product.id} onClick={() => remove(product)}>
+                            Supprimer
                           </button>
                         </div>
                       </td>
@@ -206,7 +203,7 @@ export default function ProduitsPage() {
                   </p>
                   <div className="adm-actions">
                     <Link className="on-btn on-btn--secondary on-btn--sm" href={`/dashboard/produits/${product.id}`}>Modifier</Link>
-                    <button type="button" className="on-btn on-btn--ghost on-btn--sm" onClick={() => archive(product)}>Archiver</button>
+                    <button type="button" className="on-btn on-btn--danger on-btn--sm" onClick={() => remove(product)}>Supprimer</button>
                   </div>
                 </article>
               );

@@ -295,6 +295,5 @@ export async function dashboardOverview(dateFrom?: Date | null, dateTo?: Date | 
       items_summary: order.items.map((item) => `${item.name_snapshot} × ${item.quantity}`).join(", "),
     })),
     top_products: await topProducts({ dateFrom, dateTo, limit: 5 }),
-    note: "Chaque montant est une devise. Ne jamais additionner XAF et EUR.",
   };
 }

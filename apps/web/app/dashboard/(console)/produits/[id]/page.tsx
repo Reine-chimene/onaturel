@@ -11,16 +11,13 @@ export default function EditProduitPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
-  async function archive() {
-    if (!window.confirm("Archiver ce produit ? Il disparaîtra de la liste active.")) return;
+  async function remove() {
+    if (!window.confirm("Supprimer ce produit définitivement ?")) return;
     try {
-      await adminJson(`/api/v1/products/${params.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ is_archived: true, is_active: false }),
-      });
+      await adminJson(`/api/v1/products/${params.id}`, { method: "DELETE" });
       router.replace("/dashboard/produits");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Archivage impossible.");
+      setError(err instanceof Error ? err.message : "Suppression impossible.");
     }
   }
 
@@ -31,8 +28,8 @@ export default function EditProduitPage() {
           <p className="on-label">Produits</p>
           <h1 className="on-h1">Modifier le produit</h1>
         </div>
-        <button type="button" className="on-btn on-btn--danger" onClick={archive}>
-          Archiver
+        <button type="button" className="on-btn on-btn--danger" onClick={remove}>
+          Supprimer
         </button>
       </header>
       <ErrorNote message={error} />

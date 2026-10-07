@@ -70,12 +70,10 @@ export default function DashboardHomePage() {
             <FinanceBlock title="Cameroun" currency="XAF" rows={data.revenue.filter((r) => r.currency_code === "XAF")} />
             <FinanceBlock title="Europe" currency="EUR" rows={data.revenue.filter((r) => r.currency_code === "EUR")} />
           </section>
-          <p className="on-small">{data.note}</p>
-
           <section style={{ marginTop: "2rem" }}>
             <h2 className="on-h3">Meilleures ventes du jour</h2>
             {(data.top_products ?? []).length === 0 ? (
-              <EmptyState title="Aucune vente" text="Les ventes confirmées du jour apparaîtront ici." />
+              <EmptyState title="Aucune vente" text="Aucune vente enregistrée aujourd’hui." />
             ) : (
               <ul className="adm-series">
                 {data.top_products.map((item) => (

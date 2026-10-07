@@ -69,7 +69,6 @@ export default function ZonesPage() {
           <h1 className="on-h1">Zones</h1>
         </div>
       </header>
-      <p className="on-small">Désactiver un mode le retire du parcours de commande public. Les frais de livraison restent séparés du prix des produits.</p>
       <ErrorNote message={error} />
       {zones && zones.length === 0 ? <EmptyState title="Aucune zone" /> : null}
       {zones?.map((zone) => (

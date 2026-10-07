@@ -1,7 +1,13 @@
 import { handleRouteError, jsonOk, readJson } from "@/lib/api/route-utils";
 import { prisma } from "@/lib/db/prisma";
 import { requirePermission, writeAudit } from "@/lib/auth/session";
-import { productAdminOut, uniqueProductSlug, upsertZonePrice, setZoneQty } from "@/lib/services/catalog.service";
+import {
+  deleteProduct,
+  productAdminOut,
+  uniqueProductSlug,
+  upsertZonePrice,
+  setZoneQty,
+} from "@/lib/services/catalog.service";
 import { notFound } from "@/lib/utils/errors";
 import { productPatchSchema } from "@/lib/validations";
 
@@ -56,6 +62,18 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ productId: st
     }
     await writeAudit({ actorId: user.id, action: "product.update", entityType: "product", entityId: productId });
     return jsonOk(await productAdminOut(productId));
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
+
+export async function DELETE(req: Request, ctx: { params: Promise<{ productId: string }> }) {
+  try {
+    const user = await requirePermission(req, "catalog:write");
+    const { productId } = await ctx.params;
+    await deleteProduct(productId);
+    await writeAudit({ actorId: user.id, action: "product.delete", entityType: "product", entityId: productId });
+    return jsonOk({ ok: true });
   } catch (error) {
     return handleRouteError(error);
   }

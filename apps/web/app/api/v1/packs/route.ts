@@ -13,7 +13,15 @@ export async function GET(req: Request) {
       where: { is_archived: false },
       orderBy: { name: "asc" },
     });
-    return jsonOk(await Promise.all(rows.map((row) => packOut(row.id))));
+    const packs = [];
+    for (const row of rows) {
+      try {
+        packs.push(await packOut(row.id));
+      } catch (err) {
+        console.error("packOut failed", row.id, err);
+      }
+    }
+    return jsonOk(packs);
   } catch (error) {
     return handleRouteError(error);
   }

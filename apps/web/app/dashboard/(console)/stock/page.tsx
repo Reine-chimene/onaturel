@@ -1,17 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { EmptyState, ErrorNote } from "@/components/admin/AdminShell";
 import { adminJson } from "@/lib/admin/api";
 import type { ProductAdmin } from "@/lib/admin/types";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { StockStatus } from "@/lib/status";
 
+type StockView = "all" | "low" | "out";
+
 export default function StockPage() {
   const [products, setProducts] = useState<ProductAdmin[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [pending, setPending] = useState<string | null>(null);
+  const [view, setView] = useState<StockView>("all");
 
   function load() {
     return adminJson<ProductAdmin[]>("/api/v1/products").then(setProducts);
@@ -61,8 +65,21 @@ export default function StockPage() {
     }
   }
 
-  const ruptures = (products ?? []).filter((p) => p.zones.some((z) => z.stock <= 0));
-  const low = (products ?? []).filter((p) => p.zones.some((z) => z.stock_status === "LOW_STOCK"));
+  const low = useMemo(
+    () => (products ?? []).filter((p) => p.zones.some((z) => z.stock_status === "LOW_STOCK")),
+    [products],
+  );
+  const ruptures = useMemo(
+    () => (products ?? []).filter((p) => p.zones.some((z) => z.stock_status === "OUT_OF_STOCK")),
+    [products],
+  );
+
+  const visible = useMemo(() => {
+    if (!products) return [];
+    if (view === "low") return low;
+    if (view === "out") return ruptures;
+    return products;
+  }, [products, view, low, ruptures]);
 
   return (
     <>
@@ -72,96 +89,127 @@ export default function StockPage() {
           <h1 className="on-h1">Stock</h1>
         </div>
       </header>
-      <p className="on-small">Cameroun et Europe sont séparés. L’ajustement passe par un mouvement de stock, jamais en écriture directe.</p>
+
+      <div className="adm-filters" style={{ marginBottom: "1.25rem" }}>
+        <button type="button" className="adm-chip" aria-pressed={view === "all"} onClick={() => setView("all")}>
+          Tout le stock
+        </button>
+        <button type="button" className="adm-chip" aria-pressed={view === "low"} onClick={() => setView("low")}>
+          Stock faible ({low.length})
+        </button>
+        <button type="button" className="adm-chip" aria-pressed={view === "out"} onClick={() => setView("out")}>
+          Ruptures ({ruptures.length})
+        </button>
+      </div>
+
       <ErrorNote message={error} />
-      {products && products.length === 0 ? <EmptyState title="Aucun produit" /> : null}
-      {products && products.length > 0 ? (
+      {!products && !error ? <p className="on-small">Chargement…</p> : null}
+      {products && visible.length === 0 ? (
+        <EmptyState
+          title={view === "out" ? "Aucune rupture" : view === "low" ? "Aucun stock faible" : "Aucun produit"}
+          text={
+            view === "out"
+              ? "Tous les produits ont du stock disponible."
+              : view === "low"
+                ? "Les niveaux de stock sont corrects."
+                : undefined
+          }
+        />
+      ) : null}
+
+      {products && visible.length > 0 ? (
         <>
           <div className="on-table-wrap adm-table-desktop">
             <table className="on-table">
               <thead>
                 <tr>
                   <th>Produit</th>
-                  <th>Stock Cameroun</th>
-                  <th>Stock Europe</th>
-                  <th>Seuil</th>
+                  <th>Zone</th>
+                  <th>Statut</th>
+                  <th>Quantité</th>
+                  <th>Seuil alerte</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
-                {products.map((product) => {
-                  const cm = product.zones.find((z) => z.zone_slug === "cameroun");
-                  const eu = product.zones.find((z) => z.zone_slug === "europe");
-                  return (
-                    <tr key={product.id}>
-                      <td>{product.name}</td>
-                      <td>{cm ? <ZoneStock productId={product.id} zone={cm} edits={edits} setEdits={setEdits} save={save} pending={pending} /> : "—"}</td>
-                      <td>{eu ? <ZoneStock productId={product.id} zone={eu} edits={edits} setEdits={setEdits} save={save} pending={pending} /> : "—"}</td>
-                      <td>
-                        <div className="adm-actions">
-                          {product.zones.map((zone) => (
-                            <label key={zone.zone_id} className="on-small">
-                              {zone.zone_slug === "cameroun" ? "CM" : "EU"}{" "}
-                              <input
-                                className="on-input"
-                                style={{ width: "4rem" }}
-                                key={`${product.id}-${zone.zone_id}-${zone.low_stock_threshold}`}
-                                defaultValue={zone.low_stock_threshold ?? ""}
-                                onBlur={(e) => {
-                                  if (e.target.value !== String(zone.low_stock_threshold ?? "")) {
-                                    saveThreshold(product.id, zone.zone_id, e.target.value);
-                                  }
-                                }}
-                              />
-                            </label>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {visible.flatMap((product) =>
+                  product.zones
+                    .filter((zone) => {
+                      if (view === "low") return zone.stock_status === "LOW_STOCK";
+                      if (view === "out") return zone.stock_status === "OUT_OF_STOCK";
+                      return true;
+                    })
+                    .map((zone) => (
+                      <tr key={`${product.id}-${zone.zone_id}`}>
+                        <td>
+                          <Link href={`/dashboard/produits/${product.id}`}>{product.name}</Link>
+                        </td>
+                        <td>{zone.zone_name}</td>
+                        <td>
+                          <StatusBadge kind="stock" value={zone.stock_status as StockStatus} />
+                        </td>
+                        <td>
+                          <ZoneStock
+                            productId={product.id}
+                            zone={zone}
+                            edits={edits}
+                            setEdits={setEdits}
+                            save={save}
+                            pending={pending}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="on-input"
+                            style={{ width: "4rem" }}
+                            key={`${product.id}-${zone.zone_id}-${zone.low_stock_threshold}`}
+                            defaultValue={zone.low_stock_threshold ?? ""}
+                            onBlur={(e) => {
+                              if (e.target.value !== String(zone.low_stock_threshold ?? "")) {
+                                saveThreshold(product.id, zone.zone_id, e.target.value);
+                              }
+                            }}
+                          />
+                        </td>
+                        <td>
+                          <Link className="on-btn on-btn--ghost on-btn--sm" href={`/dashboard/produits/${product.id}`}>
+                            Modifier
+                          </Link>
+                        </td>
+                      </tr>
+                    )),
+                )}
               </tbody>
             </table>
           </div>
           <div className="adm-cards adm-cards--hide">
-            {products.map((product) => (
+            {visible.map((product) => (
               <article className="adm-card" key={product.id}>
-                <p>{product.name}</p>
-                {product.zones.map((zone) => (
-                  <div key={zone.zone_id}>
-                    <p className="on-small">{zone.zone_name}</p>
-                    <ZoneStock
-                      productId={product.id}
-                      zone={zone}
-                      edits={edits}
-                      setEdits={setEdits}
-                      save={save}
-                      pending={pending}
-                    />
-                  </div>
-                ))}
+                <Link href={`/dashboard/produits/${product.id}`}>{product.name}</Link>
+                {product.zones
+                  .filter((zone) => {
+                    if (view === "low") return zone.stock_status === "LOW_STOCK";
+                    if (view === "out") return zone.stock_status === "OUT_OF_STOCK";
+                    return true;
+                  })
+                  .map((zone) => (
+                    <div key={zone.zone_id} style={{ marginTop: "0.75rem" }}>
+                      <p className="on-small">{zone.zone_name}</p>
+                      <ZoneStock
+                        productId={product.id}
+                        zone={zone}
+                        edits={edits}
+                        setEdits={setEdits}
+                        save={save}
+                        pending={pending}
+                      />
+                    </div>
+                  ))}
               </article>
             ))}
           </div>
         </>
       ) : null}
-      <section style={{ marginTop: "2rem" }}>
-        <h2 className="on-h3">Stock faible</h2>
-        {products && low.length === 0 ? <EmptyState title="Aucun stock faible" /> : null}
-        {low.map((product) => (
-          <p key={product.id}>
-            {product.name} — {product.zones.filter((z) => z.stock_status === "LOW_STOCK").map((z) => `${z.zone_name} (${z.stock})`).join(", ")}
-          </p>
-        ))}
-      </section>
-      <section style={{ marginTop: "2rem" }}>
-        <h2 className="on-h3">Ruptures</h2>
-        {products && ruptures.length === 0 ? <EmptyState title="Aucune rupture" /> : null}
-        {ruptures.map((product) => (
-          <p key={product.id}>
-            {product.name} — {product.zones.filter((z) => z.stock <= 0).map((z) => z.zone_name).join(", ")}
-          </p>
-        ))}
-      </section>
     </>
   );
 }
@@ -185,15 +233,19 @@ function ZoneStock({
   const value = edits[key] ?? String(zone.stock);
   return (
     <div className="adm-actions" style={{ alignItems: "center" }}>
-      <StatusBadge kind="stock" value={zone.stock_status as StockStatus} />
       <input
         className="on-input"
         style={{ width: "5rem" }}
         value={value}
         onChange={(e) => setEdits((current) => ({ ...current, [key]: e.target.value }))}
       />
-      <button type="button" className="on-btn on-btn--sm on-btn--secondary" disabled={pending === key} onClick={() => save(productId, zone.zone_id)}>
-        OK
+      <button
+        type="button"
+        className="on-btn on-btn--sm on-btn--secondary"
+        disabled={pending === key}
+        onClick={() => save(productId, zone.zone_id)}
+      >
+        Enregistrer
       </button>
     </div>
   );

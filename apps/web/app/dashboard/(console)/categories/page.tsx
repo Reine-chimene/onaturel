@@ -58,16 +58,15 @@ export default function CategoriesPage() {
     }
   }
 
-  async function toggle(row: CategoryAdmin) {
+  async function remove(row: CategoryAdmin) {
+    if (!window.confirm(`Supprimer la catégorie « ${row.name} » ?`)) return;
     setError(null);
     try {
-      await adminJson(`/api/v1/categories/${row.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ is_visible: !row.is_visible }),
-      });
+      await adminJson(`/api/v1/categories/${row.id}`, { method: "DELETE" });
+      if (editing?.id === row.id) resetForm();
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Mise à jour impossible.");
+      setError(err instanceof Error ? err.message : "Suppression impossible.");
     }
   }
 
@@ -130,8 +129,8 @@ export default function CategoriesPage() {
                       <button type="button" className="on-btn on-btn--ghost on-btn--sm" onClick={() => startEdit(row)}>
                         Modifier
                       </button>
-                      <button type="button" className="on-btn on-btn--secondary on-btn--sm" onClick={() => toggle(row)}>
-                        {row.is_visible ? "Masquer" : "Afficher"}
+                      <button type="button" className="on-btn on-btn--danger on-btn--sm" onClick={() => remove(row)}>
+                        Supprimer
                       </button>
                     </div>
                   </td>

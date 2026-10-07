@@ -142,8 +142,6 @@ export default function VentesPage() {
         <CaBlock title="Cameroun" currency="XAF" rows={xaf} />
         <CaBlock title="Europe" currency="EUR" rows={eur} />
       </section>
-      <p className="on-small">Les commandes NEW et CANCELLED sont exclues. Les frais n’entrent dans le CA que s’ils sont payés.</p>
-
       <section style={{ marginTop: "2rem" }}>
         <h2 className="on-h3">Évolution — Cameroun</h2>
         <RevenueChart series={series?.series.filter((s) => s.currency_code === "XAF") ?? []} />

@@ -2,7 +2,7 @@ import { handleRouteError, jsonOk, readJson } from "@/lib/api/route-utils";
 import { prisma } from "@/lib/db/prisma";
 import { requirePermission, writeAudit } from "@/lib/auth/session";
 import { categoryOut } from "@/lib/categories";
-import { uniqueCategorySlug } from "@/lib/services/catalog.service";
+import { deleteCategory, uniqueCategorySlug } from "@/lib/services/catalog.service";
 import { notFound } from "@/lib/utils/errors";
 import { categoryPatchSchema } from "@/lib/validations";
 
@@ -33,6 +33,18 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ categoryId: s
     });
     await writeAudit({ actorId: user.id, action: "category.update", entityType: "category", entityId: updated.id });
     return jsonOk(categoryOut(updated));
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
+
+export async function DELETE(req: Request, ctx: { params: Promise<{ categoryId: string }> }) {
+  try {
+    const user = await requirePermission(req, "catalog:write");
+    const { categoryId } = await ctx.params;
+    await deleteCategory(categoryId);
+    await writeAudit({ actorId: user.id, action: "category.delete", entityType: "category", entityId: categoryId });
+    return jsonOk({ ok: true });
   } catch (error) {
     return handleRouteError(error);
   }

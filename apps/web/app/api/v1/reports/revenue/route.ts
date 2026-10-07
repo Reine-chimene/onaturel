@@ -21,7 +21,6 @@ export async function GET(req: Request) {
     });
     return jsonOk({
       rows,
-      note: "Chaque ligne est une devise. Ne jamais additionner XAF et EUR.",
     });
   } catch (error) {
     return handleRouteError(error);

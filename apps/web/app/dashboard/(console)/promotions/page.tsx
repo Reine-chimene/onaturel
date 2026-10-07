@@ -90,7 +90,6 @@ export default function PromotionsPage() {
           <h1 className="on-h1">Promotions</h1>
         </div>
       </header>
-      <p className="on-small">Une promotion Cameroun ne change jamais le prix Europe, et inversement. Aucune conversion.</p>
       <ErrorNote message={error} />
       <form className="adm-form" onSubmit={onSubmit}>
         <label className="on-field">

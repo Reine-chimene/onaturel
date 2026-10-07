@@ -16,7 +16,6 @@ export async function GET(req: Request) {
         dateTo: params.get("date_to") ? new Date(params.get("date_to")!) : null,
         zoneId,
       }),
-      note: "Lignes issues des commandes confirmées. XAF et EUR restent séparés.",
     });
   } catch (error) {
     return handleRouteError(error);
