@@ -104,6 +104,29 @@ export async function upsertPackPrices(
   }
 }
 
+export async function deletePack(bundleId: string): Promise<void> {
+  const bundle = await prisma.bundle.findUnique({ where: { id: bundleId } });
+  if (!bundle) notFound("Pack introuvable.");
+  await prisma.$transaction(async (tx) => {
+    const promos = await tx.promotion.findMany({ where: { bundle_id: bundleId } });
+    for (const promo of promos) {
+      const row = await tx.bundleZonePrice.findUnique({
+        where: { bundle_id_zone_id: { bundle_id: bundleId, zone_id: promo.zone_id } },
+      });
+      if (row) {
+        await tx.bundleZonePrice.update({
+          where: { id: row.id },
+          data: { promo_price_amount: null, promo_is_active: false },
+        });
+      }
+    }
+    await tx.promotion.deleteMany({ where: { bundle_id: bundleId } });
+    await tx.bundleItem.deleteMany({ where: { bundle_id: bundleId } });
+    await tx.bundleZonePrice.deleteMany({ where: { bundle_id: bundleId } });
+    await tx.bundle.delete({ where: { id: bundleId } });
+  });
+}
+
 export async function createPackSlug(name: string, explicit?: string | null) {
   const slug = explicit || slugify(name);
   if (!slug) badRequest("Nom de pack invalide.");

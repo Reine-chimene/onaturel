@@ -139,8 +139,13 @@ export function ProductEditor({ productId }: Props) {
 
   async function removePhoto(imageId: string) {
     if (!productId) return;
-    const product = await adminJson<ProductAdmin>(`/api/v1/products/${productId}/images/${imageId}`, { method: "DELETE" });
-    setImages(product.images);
+    setError(null);
+    try {
+      const product = await adminJson<ProductAdmin>(`/api/v1/products/${productId}/images/${imageId}`, { method: "DELETE" });
+      setImages(product.images);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Suppression de l’image impossible.");
+    }
   }
 
   async function makePrimary(imageId: string) {

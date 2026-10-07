@@ -221,27 +221,17 @@ export async function listProductsAdmin(input: {
 export async function deleteProduct(productId: string): Promise<void> {
   const product = await prisma.product.findUnique({ where: { id: productId } });
   if (!product) notFound("Produit introuvable.");
-  const orderLines = await prisma.orderItem.count({ where: { product_id: productId } });
-  if (orderLines > 0) {
-    badRequest("Ce produit est lié à des commandes. Désactivez-le au lieu de le supprimer.");
-  }
-  const bundleItems = await prisma.bundleItem.count({ where: { product_id: productId } });
-  if (bundleItems > 0) {
-    badRequest("Retirez ce produit des packs avant de le supprimer.");
-  }
-  await prisma.inventoryMovement.deleteMany({ where: { product_id: productId } });
-  await prisma.product.delete({ where: { id: productId } });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.bundleItem.deleteMany({ where: { product_id: productId } });
+    await tx.inventoryMovement.deleteMany({ where: { product_id: productId } });
+    await tx.product.delete({ where: { id: productId } });
+  });
 }
 
 export async function deleteCategory(categoryId: string): Promise<void> {
   const row = await prisma.category.findUnique({ where: { id: categoryId } });
   if (!row) notFound("Catégorie introuvable.");
-  const products = await prisma.product.count({ where: { category_id: categoryId } });
-  if (products > 0) {
-    badRequest("Déplacez ou supprimez les produits de cette catégorie avant de la supprimer.");
-  }
-  const children = await prisma.category.count({ where: { parent_id: categoryId } });
-  if (children > 0) badRequest("Supprimez d’abord les sous-catégories.");
   await prisma.category.delete({ where: { id: categoryId } });
 }
 

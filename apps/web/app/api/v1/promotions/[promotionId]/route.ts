@@ -1,7 +1,7 @@
 import { handleRouteError, jsonOk, readJson } from "@/lib/api/route-utils";
 import { prisma } from "@/lib/db/prisma";
 import { requirePermission, writeAudit } from "@/lib/auth/session";
-import { promotionIsLive, syncPromotionPrice } from "@/lib/services/promotions.service";
+import { deletePromotion, promotionIsLive, syncPromotionPrice } from "@/lib/services/promotions.service";
 import { badRequest, notFound } from "@/lib/utils/errors";
 import { promotionPatchSchema } from "@/lib/validations";
 
@@ -44,6 +44,18 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ promotionId: 
       starts_at: updated.starts_at?.toISOString() ?? null,
       ends_at: updated.ends_at?.toISOString() ?? null,
     });
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
+
+export async function DELETE(req: Request, ctx: { params: Promise<{ promotionId: string }> }) {
+  try {
+    const user = await requirePermission(req, "pricing:write");
+    const { promotionId } = await ctx.params;
+    await deletePromotion(promotionId);
+    await writeAudit({ actorId: user.id, action: "promotion.delete", entityType: "promotion", entityId: promotionId });
+    return jsonOk({ ok: true });
   } catch (error) {
     return handleRouteError(error);
   }

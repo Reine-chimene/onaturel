@@ -75,11 +75,27 @@ export default function PromotionsPage() {
   }
 
   async function toggle(row: PromotionAdmin) {
-    await adminJson(`/api/v1/promotions/${row.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ is_active: !row.is_active }),
-    });
-    await load();
+    setError(null);
+    try {
+      await adminJson(`/api/v1/promotions/${row.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ is_active: !row.is_active }),
+      });
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Mise à jour impossible.");
+    }
+  }
+
+  async function remove(row: PromotionAdmin) {
+    if (!window.confirm("Supprimer cette promotion ?")) return;
+    setError(null);
+    try {
+      await adminJson(`/api/v1/promotions/${row.id}`, { method: "DELETE" });
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Suppression impossible.");
+    }
   }
 
   return (
@@ -162,9 +178,14 @@ export default function PromotionsPage() {
                     </td>
                     <td>{row.is_live ? "Active" : row.is_active ? "Planifiée" : "Inactive"}</td>
                     <td>
-                      <button type="button" className="on-btn on-btn--sm on-btn--secondary" onClick={() => toggle(row)}>
-                        {row.is_active ? "Désactiver" : "Activer"}
-                      </button>
+                      <div className="adm-actions">
+                        <button type="button" className="on-btn on-btn--sm on-btn--secondary" onClick={() => toggle(row)}>
+                          {row.is_active ? "Désactiver" : "Activer"}
+                        </button>
+                        <button type="button" className="on-btn on-btn--sm on-btn--danger" onClick={() => remove(row)}>
+                          Supprimer
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

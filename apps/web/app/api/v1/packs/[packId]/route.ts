@@ -1,7 +1,7 @@
 import { handleRouteError, jsonOk, readJson } from "@/lib/api/route-utils";
 import { prisma } from "@/lib/db/prisma";
 import { requirePermission, writeAudit } from "@/lib/auth/session";
-import { packOut, replaceItems, upsertPackPrices } from "@/lib/services/packs.service";
+import { deletePack, packOut, replaceItems, upsertPackPrices } from "@/lib/services/packs.service";
 import { notFound } from "@/lib/utils/errors";
 import { packPatchSchema } from "@/lib/validations";
 
@@ -41,6 +41,18 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ packId: strin
     if (body.prices) await upsertPackPrices(packId, body.prices);
     await writeAudit({ actorId: user.id, action: "pack.update", entityType: "bundle", entityId: packId });
     return jsonOk(await packOut(packId));
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
+
+export async function DELETE(req: Request, ctx: { params: Promise<{ packId: string }> }) {
+  try {
+    const user = await requirePermission(req, "catalog:write");
+    const { packId } = await ctx.params;
+    await deletePack(packId);
+    await writeAudit({ actorId: user.id, action: "pack.delete", entityType: "bundle", entityId: packId });
+    return jsonOk({ ok: true });
   } catch (error) {
     return handleRouteError(error);
   }

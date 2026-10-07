@@ -35,6 +35,17 @@ export default function PacksPage() {
       .catch((err: Error) => setError(err.message));
   }, []);
 
+  async function removePack(pack: PackAdmin) {
+    if (!window.confirm(`Supprimer le pack « ${pack.name} » ?`)) return;
+    setError(null);
+    try {
+      await adminJson(`/api/v1/packs/${pack.id}`, { method: "DELETE" });
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Suppression impossible.");
+    }
+  }
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
@@ -140,19 +151,28 @@ export default function PacksPage() {
                   {zone.available ? "disponible" : "PACK INDISPONIBLE"}
                 </p>
               ))}
-              <button
-                type="button"
-                className="on-btn on-btn--sm on-btn--secondary"
-                onClick={async () => {
-                  await adminJson(`/api/v1/packs/${pack.id}`, {
-                    method: "PATCH",
-                    body: JSON.stringify({ is_active: !pack.is_active }),
-                  });
-                  await load();
-                }}
-              >
-                {pack.is_active ? "Désactiver" : "Activer"}
-              </button>
+              <div className="adm-actions">
+                <button
+                  type="button"
+                  className="on-btn on-btn--sm on-btn--secondary"
+                  onClick={async () => {
+                    try {
+                      await adminJson(`/api/v1/packs/${pack.id}`, {
+                        method: "PATCH",
+                        body: JSON.stringify({ is_active: !pack.is_active }),
+                      });
+                      await load();
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : "Mise à jour impossible.");
+                    }
+                  }}
+                >
+                  {pack.is_active ? "Désactiver" : "Activer"}
+                </button>
+                <button type="button" className="on-btn on-btn--sm on-btn--danger" onClick={() => removePack(pack)}>
+                  Supprimer
+                </button>
+              </div>
             </article>
           ))}
         </div>

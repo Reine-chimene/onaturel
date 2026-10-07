@@ -75,9 +75,6 @@ export async function adminFetch(path: string, init: RequestInit = {}): Promise<
       }
       res = await fetch(`${API_BASE}${path}`, { ...init, headers: retry });
     }
-    if (res.status === 401 && !path.includes("/auth/login") && !path.includes("/auth/refresh")) {
-      redirectToManagerLogin();
-    }
   }
   return res;
 }
@@ -92,6 +89,9 @@ export async function adminJson<T>(path: string, init: RequestInit = {}): Promis
       else if (Array.isArray(body.detail)) detail = JSON.stringify(body.detail);
     } catch {
       /* keep status */
+    }
+    if (res.status === 401 && !path.includes("/auth/login") && !path.includes("/auth/refresh")) {
+      setTimeout(() => redirectToManagerLogin(), 1500);
     }
     throw new Error(detail);
   }
