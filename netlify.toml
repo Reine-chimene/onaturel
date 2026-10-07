@@ -1,10 +1,12 @@
-# Monorepo : pas de package.json à la racine.
-# `base` force l’install et `npm run build` dans apps/web.
+# Déploiement Netlify — app Next.js dans apps/web (site + API + admin).
+# Branche Git recommandée : o2switch-production (ou main après fusion).
 
 [build]
   base = "apps/web"
   command = "npm run build"
-  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

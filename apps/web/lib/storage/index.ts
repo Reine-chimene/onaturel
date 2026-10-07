@@ -7,6 +7,7 @@ import {
 } from "@/lib/storage/local";
 
 export function useLocalStorage(): boolean {
+  if (process.env.NETLIFY === "true") return false;
   const driver = (process.env.STORAGE_DRIVER || "").toLowerCase();
   if (driver === "local") return true;
   if (driver === "minio") return false;

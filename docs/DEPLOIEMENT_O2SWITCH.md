@@ -2,6 +2,8 @@
 
 Guide pour héberger l'application Next.js (site + admin + API) sur un hébergement O2Switch mutualisé.
 
+> **Avant d’avoir votre nom de domaine**, vous pouvez utiliser [Netlify](./DEPLOIEMENT_NETLIFY.md). Passez à O2Switch quand le domaine est prêt.
+
 ## Prérequis
 
 - Compte O2Switch avec accès **cPanel** et **SSH**
