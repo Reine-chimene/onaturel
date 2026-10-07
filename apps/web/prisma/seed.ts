@@ -5,7 +5,7 @@ import { UserRole } from "../types/enums";
 
 const prisma = new PrismaClient();
 
-const OWNER_EMAIL = (process.env.OWNER_EMAIL ?? "onqture@onaturelle.local").toLowerCase();
+const OWNER_EMAIL = (process.env.OWNER_EMAIL ?? "onqture@onaturelle.com").toLowerCase();
 const OWNER_PASSWORD = process.env.OWNER_PASSWORD ?? "naturel2";
 const OWNER_NAME = process.env.OWNER_NAME ?? "O'Naturelle";
 

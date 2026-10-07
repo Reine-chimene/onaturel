@@ -11,7 +11,8 @@
     "test": "vitest run",
     "db:generate": "prisma generate",
     "db:baseline": "prisma migrate resolve --applied 0001_baseline",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:reset-admin": "tsx scripts/reset-admin.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

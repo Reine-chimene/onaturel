@@ -6,11 +6,7 @@ import { issueTokens, hashRefreshToken } from "@/lib/auth/session";
 import { isOwnerRole } from "@/lib/auth/rbac";
 import { forbidden, unauthorized, conflict, notFound, badRequest } from "@/lib/utils/errors";
 import { UserRole } from "@/types/enums";
-
-function normalizeLoginEmail(email: string): string {
-  const value = email.trim().toLowerCase();
-  return value.includes("@") ? value : `${value}@onaturelle.local`;
-}
+import { normalizeLoginEmail } from "@/lib/auth/login-email";
 
 export async function login(email: string, password: string) {
   const user = await prisma.user.findUnique({ where: { email: normalizeLoginEmail(email) } });

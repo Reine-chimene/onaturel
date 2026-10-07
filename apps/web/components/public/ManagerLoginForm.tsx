@@ -31,7 +31,7 @@ export function ManagerLoginForm({ onSuccess }: { onSuccess?: () => void }) {
       <div>
         <p className="home-manager__label">Administration</p>
         <h2 className="home-manager__title">Manager</h2>
-        <p className="home-manager__hint">Connexion réservée à la propriétaire.</p>
+        <p className="home-manager__hint">Connexion réservée à la propriétaire (e-mail complet).</p>
       </div>
       <label className="home-manager__field">
         <span>Identifiant</span>

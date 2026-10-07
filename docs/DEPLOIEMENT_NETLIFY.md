@@ -26,7 +26,7 @@ npx prisma migrate deploy
 npx prisma db seed
 ```
 
-Identifiants admin après seed : `onqture` / `naturel2`.
+Compte admin (à créer sur Neon) : `npm run db:reset-admin` avec `ADMIN_EMAIL` et `ADMIN_PASSWORD`.
 
 ## 3. Lier Netlify au dépôt
 
